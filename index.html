@@ -198,7 +198,7 @@ function selectMachine(m) {
   // ส่งคำสั่ง 'start' ไปหาบอร์ดทันทีหลังจากเชื่อมต่อสำเร็จ
   // เราใช้ setTimeout นิดหน่อยเพื่อให้ MQTT Connect เรียบร้อยก่อนส่ง
   setTimeout(() => {
-    publish(TOPIC_SAVE, 'start');
+    publish('web/request/' + m.id, 'start');
     showToast('เชื่อมต่อกับเครื่อง ' + m.id + ' แล้ว', 'success');
   }, 1000);
 }
