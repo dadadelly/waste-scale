@@ -182,38 +182,35 @@ MACHINES.forEach(m => {
 function selectMachine(m) {
   currentMachine = m;
   
+  // ตั้งค่า Topic สำหรับรอรับค่าจากเครื่อง (อันนี้ถูกแล้ว)
   TOPIC_WEIGHT = BASE_TOPIC + m.id + '/weight';
   TOPIC_TYPE   = BASE_TOPIC + m.id + '/type';
   TOPIC_SAVE   = BASE_TOPIC + m.id + '/save';
   TOPIC_STATUS = BASE_TOPIC + m.id + '/status';
 
   document.getElementById('display-m-name').textContent = m.name;
-  
   document.getElementById('screen-machine').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
 
-  // เชื่อมต่อ MQTT
   connectMQTT();
 
-  // ส่งคำสั่ง 'start' ไปหาบอร์ดทันทีหลังจากเชื่อมต่อสำเร็จ
-  // เราใช้ setTimeout นิดหน่อยเพื่อให้ MQTT Connect เรียบร้อยก่อนส่ง
   setTimeout(() => {
-    publish('web/request/' + m.id, 'start');
+    // *** แก้ไขจุดนี้: ส่งหา Node-RED แทนการส่งหาบอร์ดโดยตรง ***
+    publish('web/request/' + m.id, 'start'); 
+    
     showToast('เชื่อมต่อกับเครื่อง ' + m.id + ' แล้ว', 'success');
   }, 1000);
 }
 // ฟังก์ชันออกจากเครื่อง (กลับหน้าแรก)
 function exitMachine() {
   if (confirm('คุณต้องการออกจากเครื่อง ' + currentMachine.id + ' ใช่หรือไม่?')) {
-    // 1. ส่งคำสั่งบอกบอร์ดให้กลับหน้า Standby
-    publish(TOPIC_SAVE, 'stop');
+    // *** แก้ไขจุดนี้: ส่ง 'stop' ไปที่ Node-RED ***
+    publish('web/request/' + currentMachine.id, 'stop');
     
-    // 2. เคลียร์ค่าในเว็บ
     session = [];
     selectedType = null;
     renderSession();
     
-    // 3. ปิดการเชื่อมต่อ MQTT และสลับหน้าจอ
     if (mqttClient) mqttClient.end();
     document.getElementById('screen-app').classList.remove('active');
     document.getElementById('screen-machine').classList.add('active');
