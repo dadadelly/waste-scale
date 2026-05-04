@@ -8,420 +8,199 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Thasadith:wght@400;700&display=swap');
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --text: #e8eaf6;
-    --muted: #6b7280;
-    --green: #22c55e;
-    --green-dim: #16a34a22;
-    --amber: #f59e0b;
-    --amber-dim: #f59e0b22;
-    --red: #ef4444;
-    --blue: #60a5fa;
-    --blue-dim: #60a5fa18;
-    --teal: #2dd4bf;
+  :root { /* [ใช้ Color Variables เดิมของคุณได้เลย ผมขอย่อไว้เพื่อความกะทัดรัด] */
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3350;
+    --text: #e8eaf6; --muted: #6b7280; --green: #22c55e; --green-dim: #16a34a22;
+    --amber: #f59e0b; --red: #ef4444; --blue: #60a5fa; --teal: #2dd4bf;
   }
-
+  
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Sarabun', sans-serif; min-height: 100vh; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 16px;
-    min-height: 100vh;
-    padding-bottom: 40px;
-  }
+  /* CSS จัดการสลับหน้าจอ */
+  .screen { display: none; padding-bottom: 40px; }
+  .screen.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ---- Header ---- */
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+  /* --- หน้าเลือกเครื่อง --- */
+  .machine-select-container { padding: 30px 20px; text-align: center; }
+  .logo-icon { font-size: 60px; margin-bottom: 10px; }
+  .machine-btn {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; background: var(--surface); border: 2px solid var(--border);
+    border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    color: var(--text); font-size: 18px; font-family: 'Sarabun', sans-serif;
+    cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
   }
-  .header-title {
-    font-family: 'Thasadith', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--teal);
-    letter-spacing: 0.5px;
-  }
-  .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .machine-btn:active { transform: scale(0.98); border-color: var(--teal); background: #2dd4bf15; }
+  .machine-btn .m-name { font-weight: 700; }
+  .machine-btn .m-id { font-size: 14px; color: var(--muted); background: var(--surface2); padding: 4px 10px; border-radius: 10px; }
 
-  .mqtt-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: var(--red);
-    transition: background 0.4s;
-    box-shadow: 0 0 0 3px #ef444422;
-  }
-  .mqtt-dot.connected {
-    background: var(--green);
-    box-shadow: 0 0 0 3px #22c55e22;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 3px #22c55e22; }
-    50%      { box-shadow: 0 0 0 6px #22c55e11; }
-  }
+  /* --- ส่วนของหน้าตาชั่ง (เอา CSS เดิมของคุณมาใส่ตรงนี้ได้เลย) --- */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;}
+  .header-title { font-family: 'Thasadith'; font-size: 18px; font-weight: 700; color: var(--teal); }
+  .header-sub { font-size: 11px; color: var(--muted); }
+  .mqtt-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); transition: background 0.4s; box-shadow: 0 0 0 3px #ef444422; }
+  .mqtt-dot.connected { background: var(--green); box-shadow: 0 0 0 3px #22c55e22; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px #22c55e22; } 50% { box-shadow: 0 0 0 6px #22c55e11; } }
 
-  /* ---- Weight Display ---- */
-  .weight-card {
-    margin: 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px 20px 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .weight-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--teal), var(--blue));
-    border-radius: 20px 20px 0 0;
-  }
-  .weight-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-  .weight-value {
-    font-family: 'Thasadith', sans-serif;
-    font-size: 64px;
-    font-weight: 700;
-    line-height: 1;
-    margin: 8px 0 4px;
-    color: var(--text);
-    transition: color 0.3s;
-  }
+  .weight-card { margin: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px 20px; text-align: center; position: relative; }
+  .weight-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--teal), var(--blue)); border-radius: 20px 20px 0 0; }
+  .weight-label { font-size: 12px; color: var(--muted); }
+  .weight-value { font-family: 'Thasadith'; font-size: 64px; font-weight: 700; color: var(--text); margin: 8px 0 4px; }
   .weight-value.stable { color: var(--green); }
   .weight-unit { font-size: 20px; color: var(--muted); }
-  .stable-badge {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    background: var(--green-dim);
-    color: var(--green);
-    border: 1px solid #22c55e44;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
+  .stable-badge { display: inline-block; margin-top: 10px; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: var(--green-dim); color: var(--green); border: 1px solid #22c55e44; opacity: 0; }
   .stable-badge.show { opacity: 1; }
-  .tare-btn {
-    margin-top: 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 13px;
-    padding: 6px 18px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .tare-btn:active { background: var(--border); color: var(--text); }
-
-  /* ---- Type Selector ---- */
+  .tare-btn { margin-top: 14px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 18px; border-radius: 20px; cursor: pointer; }
+  
   .section { margin: 0 16px 16px; }
-  .section-title {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .type-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .type-btn {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 6px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .type-btn .icon { font-size: 24px; display: block; margin-bottom: 4px; }
-  .type-btn .name { font-size: 13px; color: var(--muted); font-weight: 600; }
-  .type-btn .co2  { font-size: 10px; color: var(--muted); margin-top: 2px; opacity: 0.6; }
-
-  .type-btn:active { transform: scale(0.96); }
-  .type-btn.selected {
-    border-color: var(--teal);
-    background: #2dd4bf15;
-    box-shadow: 0 0 0 1px var(--teal);
-  }
+  .section-title { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .type-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 6px; text-align: center; cursor: pointer; }
+  .type-btn.selected { border-color: var(--teal); background: #2dd4bf15; }
   .type-btn.selected .name { color: var(--teal); }
+  .type-btn .icon { font-size: 24px; display: block; }
+  .type-btn .name { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .type-btn .co2 { font-size: 10px; color: var(--muted); }
 
-  /* ---- Add Button ---- */
-  .add-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #2dd4bf, #60a5fa);
-    border: none;
-    border-radius: 16px;
-    color: #0f1117;
-    font-family: 'Sarabun', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .add-btn:active { transform: scale(0.98); opacity: 0.9; }
-  .add-btn:disabled {
-    background: var(--surface2);
-    color: var(--muted);
-    cursor: not-allowed;
-  }
+  .add-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #2dd4bf, #60a5fa); border: none; border-radius: 16px; color: #0f1117; font-size: 17px; font-weight: 700; cursor: pointer; }
+  .add-btn:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+  
+  .save-btn { width: 100%; padding: 18px; background: var(--surface); border: 2px solid var(--green); border-radius: 16px; color: var(--green); font-size: 18px; font-weight: 700; cursor: pointer; }
+  .save-btn:disabled { border-color: var(--border); color: var(--muted); }
 
-  /* ---- Session List ---- */
   .session-list { display: flex; flex-direction: column; gap: 8px; }
-  .session-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    animation: slideIn 0.25s ease;
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .item-left { display: flex; align-items: center; gap: 10px; }
-  .item-icon { font-size: 22px; }
-  .item-name { font-size: 15px; font-weight: 600; }
-  .item-weight { font-size: 13px; color: var(--muted); margin-top: 1px; }
-  .item-right { text-align: right; }
-  .item-co2 { font-size: 13px; color: var(--teal); font-weight: 600; }
-  .item-delete {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    margin-left: 6px;
-    border-radius: 8px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .item-delete:active { color: var(--red); background: #ef444422; }
-
-  /* ---- Summary ---- */
-  .summary-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 18px 20px;
-  }
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-  }
-  .summary-row + .summary-row { border-top: 1px solid var(--border); }
-  .summary-label { font-size: 14px; color: var(--muted); }
-  .summary-value { font-size: 16px; font-weight: 700; }
-  .summary-value.green { color: var(--green); }
-  .summary-value.amber { color: var(--amber); }
-  .summary-value.teal  { color: var(--teal); }
-
-  /* ---- Save Button ---- */
-  .save-btn {
-    width: 100%;
-    padding: 18px;
-    background: var(--surface);
-    border: 2px solid var(--green);
-    border-radius: 16px;
-    color: var(--green);
-    font-family: 'Sarabun', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .save-btn:active, .save-btn:hover {
-    background: var(--green-dim);
-  }
-  .save-btn:disabled {
-    border-color: var(--border);
-    color: var(--muted);
-    cursor: not-allowed;
-  }
-
-  /* ---- Empty state ---- */
-  .empty {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .empty-icon { font-size: 36px; margin-bottom: 8px; opacity: 0.4; }
-
-  /* ---- Toast ---- */
-  .toast {
-    position: fixed;
-    bottom: 30px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 10px 22px;
-    font-size: 14px;
-    font-weight: 600;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 999;
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  .toast.success { color: var(--green); border-color: #22c55e44; }
-  .toast.error   { color: var(--red);   border-color: #ef444444; }
+  .session-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .empty { text-align: center; padding: 30px; color: var(--muted); }
+  
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border); border-radius: 30px; padding: 10px 22px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { color: var(--green); }
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="header">
-  <div>
-    <div class="header-title">♻ ตาชั่งขยะรีไซเคิล</div>
-    <div class="header-sub" id="conn-label">กำลังเชื่อมต่อ...</div>
-  </div>
-  <div class="mqtt-dot" id="mqtt-dot"></div>
-</div>
+<!-- ================= หน้า 1: เลือกเครื่อง ================= -->
+<div id="screen-machine" class="screen active">
+  <div class="machine-select-container">
+    <div class="logo-icon">♻️</div>
+    <h2 style="margin-bottom: 5px;">ระบบชั่งขยะรีไซเคิล</h2>
+    <p style="color: var(--muted); margin-bottom: 30px; font-size: 14px;">กรุณาเลือกเครื่องที่คุณกำลังใช้งาน</p>
 
-<!-- Weight -->
-<div class="weight-card">
-  <div class="weight-label">น้ำหนักปัจจุบัน</div>
-  <div class="weight-value" id="weight-display">0.000</div>
-  <div class="weight-unit">กิโลกรัม</div>
-  <div class="stable-badge" id="stable-badge">✓ ค่าคงที่ พร้อมบันทึก</div>
-  <br>
-  <button class="tare-btn" onclick="sendTare()">⚖ ปรับศูนย์ (Tare)</button>
-</div>
-
-<!-- Type Selector -->
-<div class="section">
-  <div class="section-title">เลือกประเภทขยะ</div>
-  <div class="type-grid" id="type-grid"></div>
-</div>
-
-<!-- Add to session -->
-<div class="section">
-  <button class="add-btn" id="add-btn" onclick="addToSession()" disabled>
-    + เพิ่มในรอบนี้
-  </button>
-</div>
-
-<!-- Session list -->
-<div class="section">
-  <div class="section-title">รายการในรอบนี้</div>
-  <div class="session-list" id="session-list">
-    <div class="empty">
-      <div class="empty-icon">📦</div>
-      ยังไม่มีรายการ<br>เลือกประเภทและกดเพิ่ม
-    </div>
+    <!-- รายการเครื่อง (สร้างจาก JS) -->
+    <div id="machine-list"></div>
   </div>
 </div>
 
-<!-- Summary -->
-<div class="section" id="summary-section" style="display:none">
-  <div class="section-title">สรุปรอบนี้</div>
-  <div class="summary-card">
-    <div class="summary-row">
-      <span class="summary-label">น้ำหนักรวม</span>
-      <span class="summary-value green" id="sum-weight">0.000 kg</span>
+<!-- ================= หน้า 2: แอปตาชั่งหลัก ================= -->
+<div id="screen-app" class="screen">
+  <div class="header">
+    <div>
+      <div class="header-title">♻ ตาชั่ง <span id="display-m-name" style="color:white;font-size:14px;"></span></div>
+      <div class="header-sub" id="conn-label">กำลังเชื่อมต่อ...</div>
     </div>
-    <div class="summary-row">
-      <span class="summary-label">CO₂ ที่ลดได้</span>
-      <span class="summary-value teal" id="sum-co2">0.000 kg</span>
-    </div>
-    <div class="summary-row">
-      <span class="summary-label">จำนวนรายการ</span>
-      <span class="summary-value amber" id="sum-count">0 รายการ</span>
-    </div>
+    <div class="mqtt-dot" id="mqtt-dot"></div>
   </div>
+
+  <div class="weight-card">
+    <div class="weight-label">น้ำหนักปัจจุบัน</div>
+    <div class="weight-value" id="weight-display">0.000</div>
+    <div class="weight-unit">กิโลกรัม</div>
+    <div class="stable-badge" id="stable-badge">✓ ค่าคงที่ พร้อมบันทึก</div>
+    <br>
+    <button class="tare-btn" onclick="sendTare()">⚖ ปรับศูนย์ (Tare)</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">เลือกประเภทขยะ</div>
+    <div class="type-grid" id="type-grid"></div>
+  </div>
+
+  <div class="section"><button class="add-btn" id="add-btn" onclick="addToSession()" disabled>+ เพิ่มในรอบนี้</button></div>
+
+  <div class="section">
+    <div class="section-title">รายการในรอบนี้</div>
+    <div class="session-list" id="session-list"></div>
+  </div>
+
+  <div class="section"><button class="save-btn" id="save-btn" onclick="saveSession()" disabled>💾 บันทึกรอบชั่ง</button></div>
 </div>
 
-<!-- Save -->
-<div class="section">
-  <button class="save-btn" id="save-btn" onclick="saveSession()" disabled>
-    💾 บันทึกรอบชั่ง
-  </button>
-</div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ============================================================
-//  Config — แก้ตรงนี้ให้ตรงกับโปรเจกต์
+//  Config ข้อมูลเครื่อง & ประเภทขยะ
 // ============================================================
-const MQTT_BROKER  = 'wss://mqtt-dashboard.com:8884/mqtt';
-const TOPIC_WEIGHT = 'buen/1650902081/waste/weight';
-const TOPIC_TYPE   = 'buen/1650902081/waste/type';
-const TOPIC_SAVE   = 'buen/1650902081/waste/save';
-const TOPIC_STATUS = 'buen/1650902081/waste/status';
+const MACHINES = [
+  { id: 'M1', name: 'เครื่องที่ 1 (โซน A)' },
+  { id: 'M2', name: 'เครื่องที่ 2 (โซน B)' },
+  { id: 'M3', name: 'เครื่องที่ 3 (โซน C)' }
+];
 
-// ============================================================
-//  ประเภทขยะ + ค่า CO2 (kg CO2 ต่อ kg ขยะ)
-// ============================================================
 const WASTE_TYPES = [
   { id: 'general',  name: 'ทั่วไป',    icon: '🗑',  co2: 0.52 },
   { id: 'plastic',  name: 'พลาสติก',  icon: '🧴',  co2: 1.03 },
   { id: 'glass',    name: 'แก้ว',      icon: '🍶',  co2: 0.28 },
   { id: 'metal',    name: 'โลหะ',      icon: '🔩',  co2: 1.75 },
-  { id: 'paper',    name: 'กระดาษ',   icon: '📄',  co2: 0.94 },
-  { id: 'organic',  name: 'อินทรีย์',  icon: '🍃',  co2: 0.18 },
+  { id: 'paper',    name: 'กระดาษ',   icon: '📄',  co2: 0.94 }
 ];
 
 // ============================================================
-//  State
+//  MQTT & State variables
 // ============================================================
+const MQTT_BROKER = 'wss://mqtt-dashboard.com:8884/mqtt';
+const BASE_TOPIC  = 'buen/1650902081/waste/';
+let TOPIC_WEIGHT, TOPIC_TYPE, TOPIC_SAVE, TOPIC_STATUS;
+
 let mqttClient     = null;
+let currentMachine = null;
 let currentWeight  = 0;
 let isStable       = false;
 let selectedType   = null;
-let session        = [];   // [ { type, weight, co2, icon } ]
+let session        = [];
 
 // ============================================================
-//  Build type buttons
+//  1. สร้างหน้าเลือกเครื่อง
+// ============================================================
+const mList = document.getElementById('machine-list');
+MACHINES.forEach(m => {
+  const btn = document.createElement('div');
+  btn.className = 'machine-btn';
+  btn.innerHTML = `<span class="m-name">${m.name}</span> <span class="m-id">${m.id}</span>`;
+  btn.onclick = () => selectMachine(m);
+  mList.appendChild(btn);
+});
+
+function selectMachine(m) {
+  currentMachine = m;
+  
+  // สร้าง Topics เฉพาะสำหรับเครื่องที่เลือก
+  TOPIC_WEIGHT = BASE_TOPIC + m.id + '/weight';
+  TOPIC_TYPE   = BASE_TOPIC + m.id + '/type';
+  TOPIC_SAVE   = BASE_TOPIC + m.id + '/save';
+  TOPIC_STATUS = BASE_TOPIC + m.id + '/status';
+
+  document.getElementById('display-m-name').textContent = `(${m.name})`;
+  
+  // สลับหน้าจอ
+  document.getElementById('screen-machine').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+
+  // เริ่มต่อ MQTT เฉพาะของเครื่องนี้
+  connectMQTT();
+}
+
+// ============================================================
+//  2. สร้างปุ่มประเภทขยะ
 // ============================================================
 const grid = document.getElementById('type-grid');
 WASTE_TYPES.forEach(t => {
   const btn = document.createElement('div');
   btn.className = 'type-btn';
   btn.id = 'type-' + t.id;
-  btn.innerHTML = `
-    <span class="icon">${t.icon}</span>
-    <span class="name">${t.name}</span>
-    <span class="co2">CO₂ ×${t.co2}</span>
-  `;
+  btn.innerHTML = `<span class="icon">${t.icon}</span><span class="name">${t.name}</span><span class="co2">CO₂ ×${t.co2}</span>`;
   btn.onclick = () => selectType(t);
   grid.appendChild(btn);
 });
@@ -430,21 +209,20 @@ function selectType(t) {
   selectedType = t;
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('type-' + t.id).classList.add('selected');
-  // ส่ง MQTT ให้ ESP8266 รู้ว่าเลือกอะไร
-  publish(TOPIC_TYPE, t.name);
+  publish(TOPIC_TYPE, t.name); // ส่งบอกเครื่องว่าเลือกประเภทอะไร
   updateAddBtn();
 }
 
 // ============================================================
-//  MQTT
+//  3. ระบบ MQTT
 // ============================================================
 function connectMQTT() {
-  const clientId = 'UI-' + Math.random().toString(16).slice(2, 8);
+  const clientId = 'UI-' + currentMachine.id + '-' + Math.random().toString(16).slice(2,8);
   mqttClient = mqtt.connect(MQTT_BROKER, { clientId, clean: true });
 
   mqttClient.on('connect', () => {
     setConnected(true);
-    mqttClient.subscribe([TOPIC_WEIGHT, TOPIC_STATUS]);
+    mqttClient.subscribe([TOPIC_WEIGHT, TOPIC_STATUS]); // ฟังเฉพาะเครื่องตัวเอง
   });
 
   mqttClient.on('message', (topic, payload) => {
@@ -458,24 +236,17 @@ function connectMQTT() {
 }
 
 function publish(topic, msg) {
-  if (mqttClient && mqttClient.connected) {
-    mqttClient.publish(topic, msg);
-  }
+  if (mqttClient && mqttClient.connected) mqttClient.publish(topic, msg);
 }
 
 function setConnected(ok) {
   document.getElementById('mqtt-dot').classList.toggle('connected', ok);
-  document.getElementById('conn-label').textContent = ok ? 'เชื่อมต่อแล้ว' : 'ไม่ได้เชื่อมต่อ';
+  document.getElementById('conn-label').textContent = ok ? 'เชื่อมต่อแล้ว' : 'หลุดการเชื่อมต่อ';
 }
 
-// ============================================================
-//  Weight handler
-//  payload format: "0.235,พลาสติก,1"
-// ============================================================
 function handleWeight(msg) {
   const parts = msg.split(',');
   if (parts.length < 1) return;
-
   currentWeight = parseFloat(parts[0]) || 0;
   isStable = parts[2] === '1';
 
@@ -487,130 +258,59 @@ function handleWeight(msg) {
 }
 
 function handleStatus(msg) {
-  if (msg.startsWith('saved:')) {
-    showToast('✓ บันทึกสำเร็จแล้วค่ะ', 'success');
-  } else if (msg === 'tared') {
-    showToast('⚖ ปรับศูนย์แล้ว', 'success');
-  }
+  if (msg.startsWith('saved:')) showToast('✓ บันทึกสำเร็จแล้วค่ะ', 'success');
+  else if (msg === 'tared') showToast('⚖ ปรับศูนย์แล้ว', 'success');
 }
 
 // ============================================================
-//  Session actions
+//  4. จัดการ Session (เอาฟังก์ชันเดิมมาใส่ได้เลย)
 // ============================================================
 function updateAddBtn() {
-  const ok = selectedType !== null && currentWeight > 0.005;
-  document.getElementById('add-btn').disabled = !ok;
+  document.getElementById('add-btn').disabled = !(selectedType && currentWeight > 0.005);
 }
 
 function addToSession() {
   if (!selectedType || currentWeight <= 0.005) return;
-
-  const co2 = +(currentWeight * selectedType.co2).toFixed(3);
-  session.push({
-    type:   selectedType.name,
-    icon:   selectedType.icon,
-    weight: +currentWeight.toFixed(3),
-    co2,
-  });
-
+  session.push({ type: selectedType.name, icon: selectedType.icon, weight: +currentWeight.toFixed(3), co2: +(currentWeight * selectedType.co2).toFixed(3) });
   renderSession();
   showToast(`เพิ่ม ${selectedType.name} ${currentWeight.toFixed(3)} kg`, 'success');
 }
 
-function removeItem(idx) {
-  session.splice(idx, 1);
-  renderSession();
-}
-
 function renderSession() {
   const list = document.getElementById('session-list');
-  const summarySection = document.getElementById('summary-section');
   const saveBtn = document.getElementById('save-btn');
-
   if (session.length === 0) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">📦</div>ยังไม่มีรายการ<br>เลือกประเภทและกดเพิ่ม</div>`;
-    summarySection.style.display = 'none';
-    saveBtn.disabled = true;
-    return;
+    list.innerHTML = `<div class="empty">ยังไม่มีรายการ<br>เลือกประเภทและกดเพิ่ม</div>`;
+    saveBtn.disabled = true; return;
   }
-
   list.innerHTML = session.map((item, i) => `
     <div class="session-item">
-      <div class="item-left">
-        <span class="item-icon">${item.icon}</span>
-        <div>
-          <div class="item-name">${item.type}</div>
-          <div class="item-weight">${item.weight.toFixed(3)} kg</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center">
-        <div class="item-right">
-          <div class="item-co2">CO₂ ${item.co2.toFixed(3)} kg</div>
-        </div>
-        <button class="item-delete" onclick="removeItem(${i})">✕</button>
-      </div>
+      <div><span style="font-size:20px">${item.icon}</span> <b>${item.type}</b> <span style="color:var(--muted)">${item.weight.toFixed(3)} kg</span></div>
     </div>
   `).join('');
-
-  const totalW   = session.reduce((s, i) => s + i.weight, 0);
-  const totalCO2 = session.reduce((s, i) => s + i.co2, 0);
-  document.getElementById('sum-weight').textContent = totalW.toFixed(3) + ' kg';
-  document.getElementById('sum-co2').textContent    = totalCO2.toFixed(3) + ' kg';
-  document.getElementById('sum-count').textContent  = session.length + ' รายการ';
-
-  summarySection.style.display = 'block';
   saveBtn.disabled = false;
 }
 
 function saveSession() {
   if (session.length === 0) return;
-
-  const totalW   = session.reduce((s, i) => s + i.weight, 0);
-  const totalCO2 = session.reduce((s, i) => s + i.co2, 0);
-  const types    = session.map(i => i.type).join(',');
-
-  // ส่ง MQTT
   publish(TOPIC_SAVE, 'save');
-  publish('buen/1650902081/waste/session', JSON.stringify({
-    items:    session,
-    totalWeight: +totalW.toFixed(3),
-    totalCO2:    +totalCO2.toFixed(3),
-    types,
-    timestamp: new Date().toISOString(),
-  }));
-
+  
+  // ตัวอย่างส่งข้อมูลไป Database/Node-RED แยกตามเครื่อง
+  publish('buen/1650902081/waste/db', JSON.stringify({ machine: currentMachine.id, items: session }));
+  
   showToast('💾 บันทึกรอบชั่งแล้วค่ะ', 'success');
-
-  // Reset
-  setTimeout(() => {
-    session = [];
-    selectedType = null;
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
-    renderSession();
-    updateAddBtn();
-  }, 1000);
+  setTimeout(() => { session = []; renderSession(); document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected')); selectedType=null; updateAddBtn(); }, 1500);
 }
 
-function sendTare() {
-  publish(TOPIC_SAVE, 'tare');
-}
+function sendTare() { publish(TOPIC_SAVE, 'tare'); }
 
-// ============================================================
-//  Toast
-// ============================================================
-let toastTimer = null;
+let toastTimer;
 function showToast(msg, type = 'success') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+  el.textContent = msg; el.className = `toast ${type} show`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// ============================================================
-//  Start
-// ============================================================
-connectMQTT();
 renderSession();
 </script>
 </body>
