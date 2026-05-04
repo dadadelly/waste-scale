@@ -97,10 +97,16 @@
 <div id="screen-app" class="screen">
   <div class="header">
     <div>
-      <div class="header-title">♻ ตาชั่ง <span id="display-m-name" style="color:white;font-size:14px;"></span></div>
+      <div class="header-title">♻ เครื่อง: <span id="display-m-name" style="color:white;"></span></div>
       <div class="header-sub" id="conn-label">กำลังเชื่อมต่อ...</div>
     </div>
-    <div class="mqtt-dot" id="mqtt-dot"></div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <!-- ปุ่มออกจากเครื่อง -->
+      <button onclick="exitMachine()" style="background:var(--red); color:white; border:none; padding:5px 10px; border-radius:8px; font-size:12px; font-family:'Sarabun'; cursor:pointer;">
+        ออกจากเครื่อง
+      </button>
+      <div class="mqtt-dot" id="mqtt-dot"></div>
+    </div>
   </div>
 
   <div class="weight-card">
@@ -176,20 +182,44 @@ MACHINES.forEach(m => {
 function selectMachine(m) {
   currentMachine = m;
   
-  // สร้าง Topics เฉพาะสำหรับเครื่องที่เลือก
   TOPIC_WEIGHT = BASE_TOPIC + m.id + '/weight';
   TOPIC_TYPE   = BASE_TOPIC + m.id + '/type';
   TOPIC_SAVE   = BASE_TOPIC + m.id + '/save';
   TOPIC_STATUS = BASE_TOPIC + m.id + '/status';
 
-  document.getElementById('display-m-name').textContent = `(${m.name})`;
+  document.getElementById('display-m-name').textContent = m.name;
   
-  // สลับหน้าจอ
   document.getElementById('screen-machine').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
 
-  // เริ่มต่อ MQTT เฉพาะของเครื่องนี้
+  // เชื่อมต่อ MQTT
   connectMQTT();
+
+  // ส่งคำสั่ง 'start' ไปหาบอร์ดทันทีหลังจากเชื่อมต่อสำเร็จ
+  // เราใช้ setTimeout นิดหน่อยเพื่อให้ MQTT Connect เรียบร้อยก่อนส่ง
+  setTimeout(() => {
+    publish(TOPIC_SAVE, 'start');
+    showToast('เชื่อมต่อกับเครื่อง ' + m.id + ' แล้ว', 'success');
+  }, 1000);
+}
+// ฟังก์ชันออกจากเครื่อง (กลับหน้าแรก)
+function exitMachine() {
+  if (confirm('คุณต้องการออกจากเครื่อง ' + currentMachine.id + ' ใช่หรือไม่?')) {
+    // 1. ส่งคำสั่งบอกบอร์ดให้กลับหน้า Standby
+    publish(TOPIC_SAVE, 'stop');
+    
+    // 2. เคลียร์ค่าในเว็บ
+    session = [];
+    selectedType = null;
+    renderSession();
+    
+    // 3. ปิดการเชื่อมต่อ MQTT และสลับหน้าจอ
+    if (mqttClient) mqttClient.end();
+    document.getElementById('screen-app').classList.remove('active');
+    document.getElementById('screen-machine').classList.add('active');
+    
+    showToast('ออกจากเครื่องแล้ว', 'success');
+  }
 }
 
 // ============================================================
