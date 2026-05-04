@@ -253,6 +253,9 @@ function connectMQTT() {
   mqttClient.on('connect', () => {
     setConnected(true);
     mqttClient.subscribe([TOPIC_WEIGHT, TOPIC_STATUS]); // ฟังเฉพาะเครื่องตัวเอง
+
+    publish(TOPIC_SAVE, 'start'); 
+    showToast('เชื่อมต่อกับเครื่อง ' + currentMachine.id + ' แล้ว', 'success');
   });
 
   mqttClient.on('message', (topic, payload) => {
@@ -314,9 +317,13 @@ function renderSession() {
     saveBtn.disabled = true; return;
   }
   list.innerHTML = session.map((item, i) => `
-    <div class="session-item">
-      <div><span style="font-size:20px">${item.icon}</span> <b>${item.type}</b> <span style="color:var(--muted)">${item.weight.toFixed(3)} kg</span></div>
-    </div>
+      <div class="session-item">
+        <div><span style="font-size:20px">${item.icon}</span> <b>${item.type}</b></div>
+        <div style="text-align:right">
+          <div><b>${item.weight.toFixed(3)} kg</b></div>
+          <div style="font-size:10px; color:var(--teal)">ลด CO₂: ${item.co2.toFixed(2)} kg</div>
+        </div>
+      </div>
   `).join('');
   saveBtn.disabled = false;
 }
